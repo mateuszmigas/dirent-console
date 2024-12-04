@@ -5,42 +5,41 @@ use ratatui::{
     widgets::{Block, Borders, Clear, Paragraph},
 };
 
-use super::{component::Node, RenderingContext};
+use super::{
+    component::{Node, RenderProps},
+    RenderingContext,
+};
 
-pub struct Panel {
-    title: Option<String>,
-    content: String,
+#[derive(Debug)]
+pub struct PanelProps {
+    pub title: String,
+    pub content: String,
 }
+
+impl RenderProps for PanelProps {
+    fn as_any(&self) -> &dyn std::any::Any {
+        self
+    }
+}
+
+pub struct Panel {}
 
 impl Panel {
     pub fn new() -> Self {
-        Panel {
-            title: None,
-            content: String::new(),
-        }
-    }
-
-    pub fn with_title(mut self, title: impl Into<String>) -> Self {
-        self.title = Some(title.into());
-        self
-    }
-
-    pub fn with_content(mut self, content: impl Into<String>) -> Self {
-        self.content = content.into();
-        self
+        Panel {}
     }
 }
 
 impl Component for Panel {
-    fn render(&self, ctx: &mut RenderingContext, area: Rect) -> Vec<Node> {
+    fn render(&self, ctx: &mut RenderingContext, area: Rect, props: &dyn RenderProps) -> Vec<Node> {
         let block = Block::default()
             .borders(Borders::ALL)
-            .title(self.title.clone().unwrap_or_default());
+            .title("hello".to_owned());
 
         let rect = Rect::new(20, 20, 100, 20);
         // ctx.frame.render_widget(Clear, rect);
 
-        let paragraph = Paragraph::new(self.content.clone()).block(block);
+        let paragraph = Paragraph::new("hehe".to_owned()).block(block);
 
         vec![
             Node::WidgetNode {
@@ -52,7 +51,9 @@ impl Component for Panel {
                 area: area,
             },
             Node::ComponentNode {
-                component_type: ComponentType::Input,
+                component_type: ComponentType::Input(input::InputProps {
+                    placeholder: "Input".to_string(),
+                }),
                 area: rect,
             },
         ]

@@ -1,9 +1,12 @@
 use std::io;
 
-use crate::components::{App, Component, ComponentType, Input, Node, Panel, RenderingContext};
+use crate::components::{
+    App, AppProps, Component, ComponentType, Input, Node, Panel, RenderingContext,
+};
 use crossterm::event::{self, Event, KeyCode, KeyEventKind};
 use ratatui::{
     buffer::Buffer,
+    layout::Rect,
     widgets::{Paragraph, WidgetRef},
     DefaultTerminal, Frame,
 };
@@ -16,7 +19,7 @@ pub struct Tui {
 impl Default for Tui {
     fn default() -> Self {
         Self {
-            root: App::default(),
+            root: App::new(),
             exit: false,
         }
     }
@@ -44,6 +47,7 @@ impl Tui {
                 window_area: area,
             },
             area,
+            &AppProps::default(),
         ));
 
         for node in nodes.iter() {
@@ -69,8 +73,8 @@ impl Tui {
                 component_type,
                 area,
             } => {
-                let component = create_component(component_type);
-                let child_nodes = component.render(rendering_context, *area);
+                let child_nodes = render_component(component_type, *area);
+                //component.render(rendering_context, *area);
                 for child in child_nodes.iter() {
                     self.render_node(
                         frame,
@@ -103,10 +107,31 @@ impl Tui {
     }
 }
 
-fn create_component(component_type: &ComponentType) -> Box<dyn Component> {
+fn render_component(component_type: &ComponentType, area: Rect) -> Vec<Node> {
     match component_type {
-        ComponentType::Panel => Box::new(Panel::new()),
-        ComponentType::Input => Box::new(Input::new()),
-        ComponentType::App => Box::new(App::default()),
+        ComponentType::Input(props) => Input::new().render(
+            &mut RenderingContext {
+                area,
+                window_area: area,
+            },
+            area,
+            props,
+        ),
+        ComponentType::Panel(props) => Panel::new().render(
+            &mut RenderingContext {
+                area,
+                window_area: area,
+            },
+            area,
+            props,
+        ),
+        ComponentType::App(props) => App::new().render(
+            &mut RenderingContext {
+                area,
+                window_area: area,
+            },
+            area,
+            props,
+        ),
     }
 }

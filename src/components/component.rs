@@ -19,8 +19,17 @@ pub enum Node {
     },
 }
 
+pub trait RenderProps {
+    fn as_any(&self) -> &dyn std::any::Any;
+}
+
 pub trait Component {
-    fn render(&self, context: &mut RenderingContext, area: Rect) -> Vec<Node>;
+    fn render(
+        &self,
+        context: &mut RenderingContext,
+        area: Rect,
+        props: &dyn RenderProps,
+    ) -> Vec<Node>;
 
     fn handle_event(&mut self, event: Event) -> bool {
         false
