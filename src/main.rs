@@ -1,10 +1,11 @@
-// ANCHOR: all
 use std::io;
-mod app;
+
+mod components;
+mod tui;
 
 fn main() -> io::Result<()> {
     let mut terminal = ratatui::init();
-    let app_result: Result<(), io::Error> = crate::app::App::default().run(&mut terminal);
+    let tui_result: Result<(), io::Error> = crate::tui::Tui::default().run(&mut terminal);
     ratatui::restore();
-    app_result
+    tui_result
 }
