@@ -1,4 +1,4 @@
-use crate::components::{input, Component, Input};
+use crate::components::{input, Component, ComponentType, Input};
 use crossterm::event::Event;
 use ratatui::{
     prelude::*,
@@ -13,7 +13,7 @@ pub struct Panel {
 }
 
 impl Panel {
-    pub fn new(area: Rect) -> Self {
+    pub fn new() -> Self {
         Panel {
             title: None,
             content: String::new(),
@@ -52,7 +52,7 @@ impl Component for Panel {
                 area: area,
             },
             Node::ComponentNode {
-                component: Box::new(Input::new()),
+                component_type: ComponentType::Input,
                 area: rect,
             },
         ]

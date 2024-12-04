@@ -1,6 +1,8 @@
 use crossterm::event::Event;
 use ratatui::{layout::Rect, widgets::WidgetRef};
 
+use super::ComponentType;
+
 pub struct RenderingContext {
     pub area: Rect,
     pub window_area: Rect,
@@ -8,7 +10,7 @@ pub struct RenderingContext {
 
 pub enum Node {
     ComponentNode {
-        component: Box<dyn Component>,
+        component_type: ComponentType,
         area: Rect,
     },
     WidgetNode {

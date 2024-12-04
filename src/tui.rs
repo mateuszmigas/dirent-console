@@ -1,6 +1,6 @@
 use std::io;
 
-use crate::components::{App, Component, Node, RenderingContext};
+use crate::components::{App, Component, ComponentType, Input, Node, Panel, RenderingContext};
 use crossterm::event::{self, Event, KeyCode, KeyEventKind};
 use ratatui::{
     buffer::Buffer,
@@ -65,7 +65,11 @@ impl Tui {
         node: &Node,
     ) {
         match node {
-            Node::ComponentNode { component, area } => {
+            Node::ComponentNode {
+                component_type,
+                area,
+            } => {
+                let component = create_component(component_type);
                 let child_nodes = component.render(rendering_context, *area);
                 for child in child_nodes.iter() {
                     self.render_node(
@@ -96,5 +100,13 @@ impl Tui {
             }
         }
         Ok(())
+    }
+}
+
+fn create_component(component_type: &ComponentType) -> Box<dyn Component> {
+    match component_type {
+        ComponentType::Panel => Box::new(Panel::new()),
+        ComponentType::Input => Box::new(Input::new()),
+        ComponentType::App => Box::new(App::default()),
     }
 }

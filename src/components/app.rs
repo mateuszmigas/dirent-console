@@ -1,4 +1,4 @@
-use crate::components::{Component, Panel, RenderingContext};
+use crate::components::{Component, ComponentType, Panel, RenderingContext};
 use crossterm::event::Event;
 use ratatui::layout::{Constraint, Direction, Layout, Rect};
 
@@ -21,17 +21,25 @@ impl Component for App {
 
         vec![
             Node::ComponentNode {
-                component: Box::new(Panel::new(chunks[0]).with_content("Left panel content")),
+                component_type: ComponentType::Panel,
                 area: chunks[0],
             },
             Node::ComponentNode {
-                component: Box::new(
-                    Panel::new(chunks[1])
-                        .with_title("Right Panel")
-                        .with_content("Right panel content"),
-                ),
+                component_type: ComponentType::Panel,
                 area: chunks[1],
             },
+            // Node::ComponentNode {
+            //     component: Box::new(Panel::new(chunks[0]).with_content("Left panel content")),
+            //     area: chunks[0],
+            // },
+            // Node::ComponentNode {
+            //     component: Box::new(
+            //         Panel::new(chunks[1])
+            //             .with_title("Right Panel")
+            //             .with_content("Right panel content"),
+            //     ),
+            //     area: chunks[1],
+            // },
         ]
     }
 
