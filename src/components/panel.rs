@@ -1,8 +1,8 @@
-use super::component::Component;
+use crate::components::{Component, Input};
 use crossterm::event::Event;
 use ratatui::{
     prelude::*,
-    widgets::{Block, Borders, Paragraph},
+    widgets::{Block, Borders, Clear, Paragraph},
 };
 
 pub struct Panel {
@@ -38,6 +38,11 @@ impl Component for Panel {
         let paragraph = Paragraph::new(self.content.as_str()).block(block);
 
         frame.render_widget(paragraph, area);
+
+        let rect = Rect::new(20, 20, 100, 20);
+        frame.render_widget(Clear, rect);
+        let input = Input::new();
+        input.render(frame, rect);
     }
 
     fn handle_event(&mut self, event: Event) {

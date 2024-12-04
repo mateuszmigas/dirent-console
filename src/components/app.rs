@@ -10,16 +10,12 @@ pub struct App {}
 impl Component for App {
     fn render(&self, frame: &mut Frame, area: Rect) {
         let chunks = Layout::default()
-            .direction(Direction::Vertical)
-            .constraints([
-                Constraint::Length(3),
-                Constraint::Min(1),
-                Constraint::Length(3),
-            ])
+            .direction(Direction::Horizontal)
+            .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
             .split(frame.area());
 
         let panel_left = Panel::new(area)
-            .with_title("My Panel Left")
+            // .with_title("My Panel Left")
             .with_content("Hello, this is some text inside the panel left!");
 
         panel_left.render(frame, chunks[0]);
@@ -28,7 +24,7 @@ impl Component for App {
             .with_title("My Panel Right")
             .with_content("Hello, this is some text inside the panel right!");
 
-        panel_right.render(frame, chunks[2]);
+        panel_right.render(frame, chunks[1]);
     }
 
     fn handle_event(&mut self, event: Event) {
