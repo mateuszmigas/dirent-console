@@ -37,17 +37,25 @@ impl Component for Panel {
             .borders(Borders::ALL)
             .title(self.title.clone().unwrap_or_default());
 
-        let paragraph = Paragraph::new(self.content.as_str()).block(block);
-
-        ctx.frame.render_widget(paragraph, area);
-
         let rect = Rect::new(20, 20, 100, 20);
-        ctx.frame.render_widget(Clear, rect);
+        // ctx.frame.render_widget(Clear, rect);
 
-        vec![Node {
-            component: Box::new(Input::new()),
-            area: rect,
-        }]
+        let paragraph = Paragraph::new(self.content.clone()).block(block);
+
+        vec![
+            Node::WidgetNode {
+                widget: Box::new(Clear),
+                area: rect,
+            },
+            Node::WidgetNode {
+                widget: Box::new(paragraph),
+                area: area,
+            },
+            Node::ComponentNode {
+                component: Box::new(Input::new()),
+                area: rect,
+            },
+        ]
     }
 
     fn handle_event(&mut self, event: Event) -> bool {

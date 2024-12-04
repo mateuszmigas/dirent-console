@@ -23,9 +23,11 @@ impl Input {
 impl Component for Input {
     fn render(&self, ctx: &mut RenderingContext, area: Rect) -> Vec<Node> {
         let block = Block::default().borders(Borders::ALL);
-        let paragraph = Paragraph::new(self.value.as_str()).block(block);
-        ctx.frame.render_widget(paragraph, area);
-        vec![]
+        let paragraph = Paragraph::new(self.value.clone()).block(block);
+        vec![Node::WidgetNode {
+            widget: Box::new(paragraph),
+            area: area,
+        }]
     }
 
     fn handle_event(&mut self, event: Event) -> bool {

@@ -20,11 +20,11 @@ impl Component for App {
             .split(area);
 
         vec![
-            Node {
+            Node::ComponentNode {
                 component: Box::new(Panel::new(chunks[0]).with_content("Left panel content")),
                 area: chunks[0],
             },
-            Node {
+            Node::ComponentNode {
                 component: Box::new(
                     Panel::new(chunks[1])
                         .with_title("Right Panel")
