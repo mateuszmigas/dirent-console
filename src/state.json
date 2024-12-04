@@ -1,0 +1,21 @@
+{
+    "panel1": {
+        "title": "Create New Json",
+        "content": "This is the content of panel 1",
+        "selectedItemIndex": 0,
+        "tabs": [
+            "Tab 1",
+            "Tab 2",
+            "Tab 3"
+        ]
+    },
+    "panel2": {
+        "title": "Create New Json 2",
+        "content": "This is the content of panel 2",
+        "selectedItemIndex": 0
+    },
+    "dialog": {
+        "title": "Create New Json 3",
+        "content": "This is the content of dialog"
+    }
+}
