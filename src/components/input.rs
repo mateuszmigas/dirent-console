@@ -1,4 +1,7 @@
-use super::component::{Component, Node, RenderProps};
+use super::{
+    component::{Component, Node, RenderProps},
+    RenderingContext,
+};
 use crossterm::event::Event;
 use ratatui::{
     prelude::*,
@@ -25,13 +28,13 @@ impl Input {
 }
 
 impl Component for Input {
-    fn render(&self, props: &dyn RenderProps, area: Rect) -> Vec<Node> {
+    fn render(&self, context: &RenderingContext, props: &dyn RenderProps) -> Vec<Node> {
         let input_props = props.as_any().downcast_ref::<InputProps>().unwrap();
         let block = Block::default().borders(Borders::ALL);
         let paragraph = Paragraph::new(input_props.initial_value.clone()).block(block);
         vec![Node::WidgetNode {
             widget: Box::new(paragraph),
-            area: area,
+            area: context.area,
         }]
     }
 

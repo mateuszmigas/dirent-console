@@ -2,7 +2,10 @@ use crate::components::{panel::PanelProps, Component, ComponentType};
 use crossterm::event::Event;
 use ratatui::layout::{Constraint, Direction, Layout, Rect};
 
-use super::component::{Node, RenderProps};
+use super::{
+    component::{Node, RenderProps},
+    RenderingContext,
+};
 
 #[derive(Debug)]
 pub struct AppProps {}
@@ -28,11 +31,11 @@ impl App {
 }
 
 impl Component for App {
-    fn render(&self, props: &dyn RenderProps, area: Rect) -> Vec<Node> {
+    fn render(&self, context: &RenderingContext, _: &dyn RenderProps) -> Vec<Node> {
         let chunks = Layout::default()
             .direction(Direction::Horizontal)
             .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
-            .split(area);
+            .split(context.area);
 
         vec![
             Node::ComponentNode {

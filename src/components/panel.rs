@@ -2,7 +2,10 @@ use crate::components::{input, Component, ComponentType};
 use crossterm::event::Event;
 use ratatui::prelude::*;
 
-use super::component::{Node, RenderProps};
+use super::{
+    component::{Node, RenderProps},
+    RenderingContext,
+};
 
 #[derive(Debug)]
 pub struct PanelProps {
@@ -24,13 +27,13 @@ impl Panel {
 }
 
 impl Component for Panel {
-    fn render(&self, props: &dyn RenderProps, area: Rect) -> Vec<Node> {
+    fn render(&self, context: &RenderingContext, props: &dyn RenderProps) -> Vec<Node> {
         let panel_props = props.as_any().downcast_ref::<PanelProps>().unwrap();
         vec![Node::ComponentNode {
             component_type: ComponentType::Input(input::InputProps {
                 initial_value: panel_props.title.clone() + "_input",
             }),
-            area: area,
+            area: context.area,
         }]
     }
 
