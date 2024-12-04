@@ -1,9 +1,11 @@
-use crate::components::{Component, Input};
+use crate::components::{input, Component, Input};
 use crossterm::event::Event;
 use ratatui::{
     prelude::*,
     widgets::{Block, Borders, Clear, Paragraph},
 };
+
+use super::{component::Node, RenderingContext};
 
 pub struct Panel {
     title: Option<String>,
@@ -30,22 +32,26 @@ impl Panel {
 }
 
 impl Component for Panel {
-    fn render(&self, frame: &mut Frame, area: Rect) {
+    fn render(&self, ctx: &mut RenderingContext, area: Rect) -> Vec<Node> {
         let block = Block::default()
             .borders(Borders::ALL)
             .title(self.title.clone().unwrap_or_default());
 
         let paragraph = Paragraph::new(self.content.as_str()).block(block);
 
-        frame.render_widget(paragraph, area);
+        ctx.frame.render_widget(paragraph, area);
 
         let rect = Rect::new(20, 20, 100, 20);
-        frame.render_widget(Clear, rect);
-        let input = Input::new();
-        input.render(frame, rect);
+        ctx.frame.render_widget(Clear, rect);
+
+        vec![Node {
+            component: Box::new(Input::new()),
+            area: rect,
+        }]
     }
 
-    fn handle_event(&mut self, event: Event) {
+    fn handle_event(&mut self, event: Event) -> bool {
         // No event handling needed for now
+        false
     }
 }

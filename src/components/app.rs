@@ -1,33 +1,41 @@
-use crate::components::{Component, Panel};
+use crate::components::{Component, Panel, RenderingContext};
 use crossterm::event::Event;
-use ratatui::{
-    layout::{Constraint, Direction, Layout, Rect},
-    Frame,
-};
+use ratatui::layout::{Constraint, Direction, Layout, Rect};
+
+use super::component::Node;
 
 pub struct App {}
 
+impl Default for App {
+    fn default() -> Self {
+        Self {}
+    }
+}
+
 impl Component for App {
-    fn render(&self, frame: &mut Frame, area: Rect) {
+    fn render(&self, ctx: &mut RenderingContext, area: Rect) -> Vec<Node> {
         let chunks = Layout::default()
             .direction(Direction::Horizontal)
             .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
-            .split(frame.area());
+            .split(area);
 
-        let panel_left = Panel::new(area)
-            // .with_title("My Panel Left")
-            .with_content("Hello, this is some text inside the panel left!");
-
-        panel_left.render(frame, chunks[0]);
-
-        let panel_right = Panel::new(area)
-            .with_title("My Panel Right")
-            .with_content("Hello, this is some text inside the panel right!");
-
-        panel_right.render(frame, chunks[1]);
+        vec![
+            Node {
+                component: Box::new(Panel::new(chunks[0]).with_content("Left panel content")),
+                area: chunks[0],
+            },
+            Node {
+                component: Box::new(
+                    Panel::new(chunks[1])
+                        .with_title("Right Panel")
+                        .with_content("Right panel content"),
+                ),
+                area: chunks[1],
+            },
+        ]
     }
 
-    fn handle_event(&mut self, event: Event) {
-        // No event handling needed for now
+    fn handle_event(&mut self, event: Event) -> bool {
+        false
     }
 }

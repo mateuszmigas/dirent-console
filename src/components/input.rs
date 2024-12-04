@@ -1,4 +1,7 @@
-use super::component::Component;
+use super::{
+    component::{Component, Node},
+    RenderingContext,
+};
 use crossterm::event::Event;
 use ratatui::{
     prelude::*,
@@ -18,13 +21,15 @@ impl Input {
 }
 
 impl Component for Input {
-    fn render(&self, frame: &mut Frame, area: Rect) {
+    fn render(&self, ctx: &mut RenderingContext, area: Rect) -> Vec<Node> {
         let block = Block::default().borders(Borders::ALL);
         let paragraph = Paragraph::new(self.value.as_str()).block(block);
-        frame.render_widget(paragraph, area);
+        ctx.frame.render_widget(paragraph, area);
+        vec![]
     }
 
-    fn handle_event(&mut self, event: Event) {
+    fn handle_event(&mut self, event: Event) -> bool {
         // No event handling needed for now
+        false
     }
 }

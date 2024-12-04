@@ -1,59 +1,61 @@
 use std::io;
 
-use crate::components::{App, Component};
-use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind};
-use ratatui::{DefaultTerminal, Frame};
+use crate::components::{App, Component, RenderingContext};
+use crossterm::event::{self, Event, KeyCode, KeyEventKind};
+use ratatui::DefaultTerminal;
 
-#[derive(Debug, Default)]
 pub struct Tui {
-    counter: u8,
+    root: App,
     exit: bool,
+}
+
+impl Default for Tui {
+    fn default() -> Self {
+        Self {
+            root: App::default(),
+            exit: false,
+        }
+    }
 }
 
 impl Tui {
     pub fn run(&mut self, terminal: &mut DefaultTerminal) -> io::Result<()> {
         while !self.exit {
-            terminal.draw(|frame| self.draw(frame))?;
+            terminal.draw(|frame| {
+                let mut ctx = RenderingContext {
+                    frame,
+                    status_text: String::new(),
+                };
+                self.render_tree(&mut ctx);
+            })?;
             self.handle_events()?;
         }
         Ok(())
     }
 
-    fn draw(&self, frame: &mut Frame) {
-        let app = App {};
-        app.render(frame, frame.area());
-    }
-
-    fn handle_events(&mut self) -> io::Result<()> {
-        match event::read()? {
-            // it's important to check that the event is a key press event as
-            // crossterm also emits key release and repeat events on Windows.
-            Event::Key(key_event) if key_event.kind == KeyEventKind::Press => {
-                self.handle_key_event(key_event)
-            }
-            _ => {}
-        };
-        Ok(())
-    }
-
-    fn handle_key_event(&mut self, key_event: KeyEvent) {
-        match key_event.code {
-            KeyCode::Char('q') => self.exit(),
-            KeyCode::Left => self.decrement_counter(),
-            KeyCode::Right => self.increment_counter(),
-            _ => {}
+    fn render_tree(&self, ctx: &mut RenderingContext) {
+        let area = ctx.frame.area();
+        let mut nodes = self.root.render(ctx, area);
+        
+        // Process the render tree
+        while let Some(node) = nodes.pop() {
+            // Get children of this node
+            let mut children = node.component.render(ctx, node.area);
+            nodes.extend(children);
         }
     }
 
-    fn exit(&mut self) {
-        self.exit = true;
-    }
-
-    fn increment_counter(&mut self) {
-        self.counter += 1;
-    }
-
-    fn decrement_counter(&mut self) {
-        self.counter -= 1;
+    fn handle_events(&mut self) -> io::Result<()> {
+        if let Event::Key(key_event) = event::read()? {
+            if key_event.kind == KeyEventKind::Press {
+                if key_event.code == KeyCode::Char('q') {
+                    self.exit = true;
+                    return Ok(());
+                }
+                
+                self.root.handle_event(Event::Key(key_event));
+            }
+        }
+        Ok(())
     }
 }
