@@ -1,19 +1,12 @@
-use crate::components::{input, Component, ComponentType, Input};
+use crate::components::{input, Component, ComponentType};
 use crossterm::event::Event;
-use ratatui::{
-    prelude::*,
-    widgets::{Block, Borders, Clear, Paragraph},
-};
+use ratatui::prelude::*;
 
-use super::{
-    component::{Node, RenderProps},
-    RenderingContext,
-};
+use super::component::{Node, RenderProps};
 
 #[derive(Debug)]
 pub struct PanelProps {
     pub title: String,
-    pub content: String,
 }
 
 impl RenderProps for PanelProps {
@@ -31,32 +24,14 @@ impl Panel {
 }
 
 impl Component for Panel {
-    fn render(&self, ctx: &mut RenderingContext, area: Rect, props: &dyn RenderProps) -> Vec<Node> {
-        let block = Block::default()
-            .borders(Borders::ALL)
-            .title("hello".to_owned());
-
-        let rect = Rect::new(20, 20, 100, 20);
-        // ctx.frame.render_widget(Clear, rect);
-
-        let paragraph = Paragraph::new("hehe".to_owned()).block(block);
-
-        vec![
-            Node::WidgetNode {
-                widget: Box::new(Clear),
-                area: rect,
-            },
-            Node::WidgetNode {
-                widget: Box::new(paragraph),
-                area: area,
-            },
-            Node::ComponentNode {
-                component_type: ComponentType::Input(input::InputProps {
-                    placeholder: "Input".to_string(),
-                }),
-                area: rect,
-            },
-        ]
+    fn render(&self, props: &dyn RenderProps, area: Rect) -> Vec<Node> {
+        let panel_props = props.as_any().downcast_ref::<PanelProps>().unwrap();
+        vec![Node::ComponentNode {
+            component_type: ComponentType::Input(input::InputProps {
+                initial_value: panel_props.title.clone() + "_input",
+            }),
+            area: area,
+        }]
     }
 
     fn handle_event(&mut self, event: Event) -> bool {

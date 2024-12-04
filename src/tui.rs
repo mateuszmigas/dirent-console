@@ -41,14 +41,7 @@ impl Tui {
         let area = frame.area();
 
         nodes.clear();
-        nodes.extend(self.root.render(
-            &mut RenderingContext {
-                area,
-                window_area: area,
-            },
-            area,
-            &AppProps::default(),
-        ));
+        nodes.extend(self.root.render(&AppProps::default(), area));
 
         for node in nodes.iter() {
             self.render_node(
@@ -109,29 +102,8 @@ impl Tui {
 
 fn render_component(component_type: &ComponentType, area: Rect) -> Vec<Node> {
     match component_type {
-        ComponentType::Input(props) => Input::new().render(
-            &mut RenderingContext {
-                area,
-                window_area: area,
-            },
-            area,
-            props,
-        ),
-        ComponentType::Panel(props) => Panel::new().render(
-            &mut RenderingContext {
-                area,
-                window_area: area,
-            },
-            area,
-            props,
-        ),
-        ComponentType::App(props) => App::new().render(
-            &mut RenderingContext {
-                area,
-                window_area: area,
-            },
-            area,
-            props,
-        ),
+        ComponentType::Input(props) => Input::new().render(props, area),
+        ComponentType::Panel(props) => Panel::new().render(props, area),
+        ComponentType::App(props) => App::new().render(props, area),
     }
 }

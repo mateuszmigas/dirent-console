@@ -24,13 +24,7 @@ pub trait RenderProps {
 }
 
 pub trait Component {
-    fn render(
-        &self,
-        context: &mut RenderingContext,
-        area: Rect,
-        props: &dyn RenderProps,
-    ) -> Vec<Node>;
-
+    fn render(&self, props: &dyn RenderProps, area: Rect) -> Vec<Node>;
     fn handle_event(&mut self, event: Event) -> bool {
         false
     }

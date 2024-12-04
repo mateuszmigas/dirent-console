@@ -1,7 +1,4 @@
-use super::{
-    component::{Component, Node, RenderProps},
-    RenderingContext,
-};
+use super::component::{Component, Node, RenderProps};
 use crossterm::event::Event;
 use ratatui::{
     prelude::*,
@@ -10,7 +7,7 @@ use ratatui::{
 
 #[derive(Debug)]
 pub struct InputProps {
-    pub placeholder: String,
+    pub initial_value: String,
 }
 
 impl RenderProps for InputProps {
@@ -19,29 +16,19 @@ impl RenderProps for InputProps {
     }
 }
 
-pub struct Input {
-    value: String,
-    placeholder: String,
-}
+pub struct Input {}
 
 impl Input {
     pub fn new() -> Self {
-        Input {
-            value: "dupa input".to_string(),
-            placeholder: "".to_string(),
-        }
-    }
-
-    pub fn with_placeholder(mut self, placeholder: impl Into<String>) -> Self {
-        self.placeholder = placeholder.into();
-        self
+        Input {}
     }
 }
 
 impl Component for Input {
-    fn render(&self, ctx: &mut RenderingContext, area: Rect, props: &dyn RenderProps) -> Vec<Node> {
+    fn render(&self, props: &dyn RenderProps, area: Rect) -> Vec<Node> {
+        let input_props = props.as_any().downcast_ref::<InputProps>().unwrap();
         let block = Block::default().borders(Borders::ALL);
-        let paragraph = Paragraph::new(self.value.clone()).block(block);
+        let paragraph = Paragraph::new(input_props.initial_value.clone()).block(block);
         vec![Node::WidgetNode {
             widget: Box::new(paragraph),
             area: area,
