@@ -7,77 +7,53 @@ use crossterm::event::{self, Event, KeyCode, KeyEventKind};
 use ratatui::{layout::Rect, DefaultTerminal, Frame};
 
 pub struct Tui {
-    root: App,
     exit: bool,
 }
 
 impl Default for Tui {
     fn default() -> Self {
-        Self {
-            root: App::new(),
-            exit: false,
-        }
+        Self { exit: false }
     }
 }
 
 impl Tui {
     pub fn run(&mut self, terminal: &mut DefaultTerminal) -> io::Result<()> {
-        let mut nodes = vec![];
         while !self.exit {
             terminal.draw(|frame| {
-                self.render_tree(frame, &mut nodes);
+                self.render_root(frame);
             })?;
             self.handle_events()?;
         }
         Ok(())
     }
 
-    fn render_tree(&self, frame: &mut Frame, nodes: &mut Vec<Node>) {
+    fn render_root(&self, frame: &mut Frame) {
         let area = frame.area();
 
-        nodes.clear();
-        nodes.extend(self.root.render(
-            &RenderingContext {
+        self.render_node(
+            frame,
+            &Node::ComponentNode {
+                component_type: ComponentType::App(AppProps {}),
                 area,
-                window_area: area,
             },
-            &AppProps::default(),
-        ));
-
-        for node in nodes.iter() {
-            self.render_node(
-                frame,
-                &mut RenderingContext {
-                    area,
-                    window_area: area,
-                },
-                node,
-            );
-        }
+        );
     }
 
-    fn render_node(
-        &self,
-        frame: &mut Frame,
-        rendering_context: &mut RenderingContext,
-        node: &Node,
-    ) {
+    fn render_node(&self, frame: &mut Frame, node: &Node) {
         match node {
             Node::ComponentNode {
                 component_type,
                 area,
             } => {
-                let child_nodes = render_component(component_type, rendering_context);
-                //component.render(rendering_context, *area);
+                let child_nodes = render_component(
+                    component_type,
+                    &RenderingContext {
+                        area: *area,
+                        window_area: frame.area(),
+                    },
+                );
                 for child in child_nodes.iter() {
-                    self.render_node(
-                        frame,
-                        &mut RenderingContext {
-                            area: *area,
-                            window_area: rendering_context.window_area,
-                        },
-                        child,
-                    );
+                    self.render_node(frame, child);
                 }
             }
             Node::WidgetNode { widget, area } => {
@@ -93,8 +69,6 @@ impl Tui {
                     self.exit = true;
                     return Ok(());
                 }
-
-                self.root.handle_event(Event::Key(key_event));
             }
         }
         Ok(())
