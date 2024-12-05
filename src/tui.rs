@@ -1,7 +1,7 @@
 use std::io;
 
 use crate::components::{
-    App, AppProps, Component, ComponentType, Input, Node, Panel, RenderingContext,
+    App, Component, ComponentType, Input, Node, Panel, RenderProps, RenderingContext,
 };
 use crossterm::event::{self, Event, KeyCode, KeyEventKind};
 use ratatui::{layout::Rect, DefaultTerminal, Frame};
@@ -33,7 +33,7 @@ impl Tui {
         self.render_node(
             frame,
             &Node::ComponentNode {
-                component_type: ComponentType::App(AppProps {}),
+                component_type: ComponentType::App,
                 area,
             },
         );
@@ -75,10 +75,20 @@ impl Tui {
     }
 }
 
+// Define a dummy struct if App doesn't require specific properties
+
+struct EmptyProps {}
+
+impl RenderProps for EmptyProps {
+    fn as_any(&self) -> &dyn std::any::Any {
+        self
+    }
+}
+
 fn render_component(component_type: &ComponentType, context: &RenderingContext) -> Vec<Node> {
     match component_type {
         ComponentType::Input(props) => Input::new().render(context, props),
         ComponentType::Panel(props) => Panel::new().render(context, props),
-        ComponentType::App(props) => App::new().render(context, props),
+        ComponentType::App => App::new().render(context, &EmptyProps {}),
     }
 }

@@ -7,21 +7,6 @@ use super::{
     RenderingContext,
 };
 
-#[derive(Debug)]
-pub struct AppProps {}
-
-impl Default for AppProps {
-    fn default() -> Self {
-        Self {}
-    }
-}
-
-impl RenderProps for AppProps {
-    fn as_any(&self) -> &dyn std::any::Any {
-        self
-    }
-}
-
 pub struct App {}
 
 impl App {
