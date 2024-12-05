@@ -1,6 +1,7 @@
 use std::io;
 
 mod components;
+mod macros;
 mod tui;
 
 fn main() -> io::Result<()> {

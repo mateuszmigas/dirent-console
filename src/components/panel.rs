@@ -1,22 +1,20 @@
-use crate::components::{input, Component, ComponentType};
-use crossterm::event::Event;
-use ratatui::{prelude::*, widgets::Block};
-
 use super::{
     component::{Node, RenderProps},
     RenderingContext,
 };
+use crate::{
+    components::{input, Component, ComponentType},
+    impl_render_props,
+};
+use crossterm::event::Event;
+use ratatui::{prelude::*, widgets::Block};
 
 #[derive(Debug)]
+
 pub struct PanelProps {
     pub title: String,
 }
-
-impl RenderProps for PanelProps {
-    fn as_any(&self) -> &dyn std::any::Any {
-        self
-    }
-}
+impl_render_props!(PanelProps);
 
 pub struct Panel {}
 
