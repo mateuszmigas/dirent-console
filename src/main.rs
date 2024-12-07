@@ -23,8 +23,16 @@ struct Context {
 }
 
 macro_rules! view {
-    ($context:expr, $($item:expr),*) => {
-        $context.render(|| vec![$($context.render(|| vec![$item])),*])
+    ($context:expr, $(<$tag:ident key=$key:expr, props=[$($prop:expr),*] />),*) => {
+        $context.render(|| vec![
+            $(
+                {
+                    let mut element = $tag($($prop),*);
+                    element = element.key($key);
+                    element
+                }
+            ),*
+        ])
     };
 }
 
@@ -63,7 +71,7 @@ fn button(context: &Context, text: &str) -> Node {
     context.render(|| vec![])
 }
 
-fn for_each(items: Vec<Node>) -> Node {
+fn each(items: Vec<Node>) -> Node {
     Node::empty().add_children(items)
 }
 
@@ -78,22 +86,22 @@ fn show(condition: bool, node: Node) -> Node {
 fn panel(context: &Context, title: &str, include_button: bool) -> Node {
     view!(
         context,
-        button(context, title).key("button1"),
-        show(include_button, button(context, "Input")),
-        button(context, title),
-        for_each(
+        <button key="button1", props=[context, title] />,
+        <show key="show1", props=[include_button, button(context, "Input")] />,
+        <button key="button2", props=[context, title] />,
+        <each key="each1", props=[
             ["1", "2", "3"]
                 .iter()
                 .map(|b| button(context, b).key(b))
                 .collect()
-        )
+        ] />
     )
 }
 
 fn app(context: &Context) -> Node {
     view!(
         context,
-        panel(context, "Left", true).key("panel1"),
-        panel(context, "Right", false).key("panel2")
+        <panel key="panel1", props=[context, "Left", true] />,
+        <panel key="panel2", props=[context, "Right", false] />
     )
 }
