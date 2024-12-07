@@ -22,6 +22,12 @@ struct Context {
     theme: String,
 }
 
+macro_rules! view {
+    ($context:expr, $($item:expr),*) => {
+        $context.render(|| vec![$($context.render(|| vec![$item])),*])
+    };
+}
+
 impl Context {
     fn new(user_id: u32, theme: &str) -> Self {
         Self {
@@ -57,22 +63,30 @@ fn button(context: &Context, text: &str) -> Node {
     context.render(|| vec![])
 }
 
-macro_rules! view {
-    ($context:expr, $($item:expr),*) => {
-        $context.render(|| vec![$($context.render(|| vec![$item])),*])
-    };
+fn for_each(items: Vec<Node>) -> Node {
+    Node::empty().add_children(items)
+}
+
+fn show(condition: bool, node: Node) -> Node {
+    if condition {
+        node
+    } else {
+        Node::empty()
+    }
 }
 
 fn panel(context: &Context, title: &str, include_button: bool) -> Node {
     view!(
         context,
         button(context, title).key("button1"),
-        if include_button {
-            button(context, "Input")
-        } else {
-            Node::empty()
-        },
-        button(context, title)
+        show(include_button, button(context, "Input")),
+        button(context, title),
+        for_each(
+            ["1", "2", "3"]
+                .iter()
+                .map(|b| button(context, b).key(b))
+                .collect()
+        )
     )
 }
 
