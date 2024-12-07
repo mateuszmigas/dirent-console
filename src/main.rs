@@ -4,7 +4,7 @@ fn main() {
     println!("{:?}", root);
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct Node {
     key: String,
     children: Vec<Node>,
@@ -23,42 +23,56 @@ impl Context {
         }
     }
 
-    fn render(&self, component: impl Fn(&Self) -> Node) -> Node {
-        component(self)
+    fn render(&self, nodes: impl Fn() -> Vec<Node>) -> Node {
+        Node::new().add_children(nodes())
     }
 }
 
 impl Node {
-    fn new(key: &str) -> Self {
+    fn empty() -> Self {
+        Self::new()
+    }
+
+    fn new() -> Self {
         Self {
-            key: key.to_string(),
+            key: "".to_string(),
             children: vec![],
         }
     }
 
-    fn add_child(mut self, child: Node) -> Self {
-        self.children.push(child);
+    fn add_children(mut self, children: Vec<Node>) -> Self {
+        self.children.extend(children);
         self
     }
 }
 
 fn button(context: &Context, key: &str, text: &str) -> Node {
-    Node::new(key)
+    context.render(|| vec![])
 }
 
-fn panel(context: &Context, key: &str, title: &str) -> Node {
-    let button1 = context.render(|_| button(context, "button1", title));
+macro_rules! view {
+    ($context:expr, $($item:expr),*) => {
+        $context.render(|| vec![$($context.render(|| vec![$item])),*])
+    };
+}
 
-    Node::new(key)
-        .add_child(button(context, "button1", title))
-        .add_child(button(context, "button2", "Input"))
+fn panel(context: &Context, key: &str, title: &str, include_button: bool) -> Node {
+    view!(
+        context,
+        button(context, "button1", title),
+        if include_button {
+            button(context, "button2", "Input")
+        } else {
+            Node::empty()
+        },
+        button(context, "button1", title)
+    )
 }
 
 fn app(context: &Context) -> Node {
-    let left_panel = panel(context, "panel1", "Left");
-    let right_panel = panel(context, "panel2", "Right");
-
-    Node::new("app")
-        .add_child(left_panel)
-        .add_child(right_panel)
+    view!(
+        context,
+        panel(context, "panel1", "Left", true),
+        panel(context, "panel2", "Right", false)
+    )
 }
