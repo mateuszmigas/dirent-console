@@ -46,33 +46,37 @@ impl Node {
     }
 }
 
+macro_rules! view {
+    ($context:expr, $({ type: $type:expr, props: [$($props:expr),*] $(, key: $key:expr)? }),* $(,)?) => {
+        $context.render(|| vec![
+            $(
+                {
+                    let mut node = $type($context, $($props),*);
+                    $(node.key = $key.to_string();)?
+                    node
+                }
+            ),*
+        ])
+    };
+}
+
 fn button(context: &Context, key: &str, text: &str) -> Node {
     context.render(|| vec![])
 }
 
-macro_rules! view {
-    ($context:expr, $($item:expr),*) => {
-        $context.render(|| vec![$($context.render(|| vec![$item])),*])
-    };
-}
-
-fn panel(context: &Context, key: &str, title: &str, include_button: bool) -> Node {
+fn panel(context: &Context, title: &str, include_button: bool) -> Node {
     view!(
         context,
-        button(context, "button1", title),
-        if include_button {
-            button(context, "button2", "Input")
-        } else {
-            Node::empty()
-        },
-        button(context, "button1", title)
+        { type: button, props: ["button1", title], key: "button1_key" },
+        { type: button, props: ["button2", "Input"], key: "button2_key" },
+        { type: button, props: ["button1", title] }
     )
 }
 
 fn app(context: &Context) -> Node {
     view!(
         context,
-        panel(context, "panel1", "Left", true),
-        panel(context, "panel2", "Right", false)
+        { type: panel, props: ["Left", true], key: "panel1_key" },
+        { type: panel, props: ["Right", false], key: "panel2_key" }
     )
 }
