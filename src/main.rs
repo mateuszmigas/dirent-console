@@ -1,64 +1,71 @@
 fn main() {
-    let context = Context::new(1, "dark");
-    let root = app(&context);
-    println!("{:?}", root);
+    let context = Context::new("app", "dark");
+    let nodes = app(&context);
+    println!("{:?}", nodes);
 }
 
 #[derive(Debug)]
 struct Node {
-    key: String,
     children: Vec<Node>,
+    title: String,
 }
 
 struct Context {
-    user_id: u32,
     theme: String,
+    current_path: Vec<String>,
 }
 
 impl Context {
-    fn new(user_id: u32, theme: &str) -> Self {
+    fn new(key: &str, theme: &str) -> Self {
         Self {
-            user_id,
             theme: theme.to_string(),
+            current_path: vec![key.to_string()],
         }
     }
 
-    fn render(&self, component: impl Fn(&Self) -> Node) -> Node {
-        component(self)
+    fn with_key(&self, key: &str) -> Self {
+        let mut new_path = self.current_path.clone();
+        new_path.push(key.to_string());
+        Self {
+            theme: self.theme.clone(),
+            current_path: new_path,
+        }
     }
 }
 
 impl Node {
-    fn new(key: &str) -> Self {
+    fn new(children: Vec<Node>) -> Self {
         Self {
-            key: key.to_string(),
-            children: vec![],
+            children: children,
+            title: "".to_string(),
         }
     }
 
-    fn add_child(mut self, child: Node) -> Self {
-        self.children.push(child);
-        self
+    fn with_title(title: &str) -> Self {
+        Self {
+            title: title.to_string(),
+            children: vec![],
+        }
     }
 }
 
-fn button(context: &Context, key: &str, text: &str) -> Node {
-    Node::new(key)
+fn title(_: &Context, text: &str) -> Node {
+    Node::new(vec![Node::with_title(text)])
+}
+fn button(context: &Context, text: &str) -> Node {
+    Node::new(vec![title(&context, &(text.to_string() + "title 1"))])
 }
 
-fn panel(context: &Context, key: &str, title: &str) -> Node {
-    let button1 = context.render(|_| button(context, "button1", title));
-
-    Node::new(key)
-        .add_child(button(context, "button1", title))
-        .add_child(button(context, "button2", "Input"))
+fn panel(context: &Context, title: &str) -> Node {
+    Node::new(vec![Node::new(vec![
+        button(&context.with_key("button1"), "Button 1"),
+        button(&context.with_key("button2"), "Button 2"),
+    ])])
 }
 
 fn app(context: &Context) -> Node {
-    let left_panel = panel(context, "panel1", "Left");
-    let right_panel = panel(context, "panel2", "Right");
-
-    Node::new("app")
-        .add_child(left_panel)
-        .add_child(right_panel)
+    Node::new(vec![Node::new(vec![
+        panel(&context.with_key("panel1"), "Left"),
+        panel(&context.with_key("panel2"), "Right"),
+    ])])
 }
