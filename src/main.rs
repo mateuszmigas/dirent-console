@@ -1,71 +1,108 @@
-fn main() {
-    let context = Context::new("app", "dark");
-    let nodes = app(&context);
-    println!("{:?}", nodes);
+use serde::Serialize;
+
+#[derive(Debug, Serialize)]
+enum Props {
+    Button(ButtonProps),
+    Box(PanelProps),
+    Panel(PanelProps),
+    Div,
+    Empty,
 }
 
-#[derive(Debug)]
-struct Node {
-    children: Vec<Node>,
-    title: String,
+#[derive(Debug, Serialize)]
+struct Element {
+    props: Props,
+    children: Vec<Element>,
 }
 
-struct Context {
-    theme: String,
-    current_path: Vec<String>,
-}
-
-impl Context {
-    fn new(key: &str, theme: &str) -> Self {
-        Self {
-            theme: theme.to_string(),
-            current_path: vec![key.to_string()],
-        }
-    }
-
-    fn with_key(&self, key: &str) -> Self {
-        let mut new_path = self.current_path.clone();
-        new_path.push(key.to_string());
-        Self {
-            theme: self.theme.clone(),
-            current_path: new_path,
-        }
-    }
-}
-
-impl Node {
-    fn new(children: Vec<Node>) -> Self {
-        Self {
-            children: children,
-            title: "".to_string(),
-        }
-    }
-
-    fn with_title(title: &str) -> Self {
-        Self {
-            title: title.to_string(),
+impl Element {
+    fn text(text: &str) -> Self {
+        Element {
+            props: Props::Empty,
             children: vec![],
         }
     }
+
+    fn new(children: Vec<Element>) -> Self {
+        Element {
+            props: Props::Empty,
+            children: children,
+        }
+    }
 }
 
-fn title(_: &Context, text: &str) -> Node {
-    Node::new(vec![Node::with_title(text)])
-}
-fn button(context: &Context, text: &str) -> Node {
-    Node::new(vec![title(&context, &(text.to_string() + "title 1"))])
-}
-
-fn panel(context: &Context, title: &str) -> Node {
-    Node::new(vec![Node::new(vec![
-        button(&context.with_key("button1"), "Button 1"),
-        button(&context.with_key("button2"), "Button 2"),
-    ])])
+//context
+#[derive(Clone, Copy)]
+struct Context {}
+impl Context {
+    fn create_element(&self, props: Props, children: Vec<Element>) -> Element {
+        Element { props, children }
+    }
 }
 
-fn app(context: &Context) -> Node {
-    Node::new(vec![Node::new(vec![
-        panel(&context.with_key("panel1"), "Left"),
-        panel(&context.with_key("panel2"), "Right"),
-    ])])
+//button
+#[derive(Debug, Serialize)]
+struct ButtonProps {
+    title: String,
+}
+fn Button(ctx: &Context, props: ButtonProps) -> Element {
+    Element::text(&props.title)
+}
+
+//box
+#[derive(Debug, Serialize)]
+struct PanelProps {
+    tabs: Vec<String>,
+}
+fn Panel(ctx: &Context, props: PanelProps) -> Element {
+    ctx.create_element(
+        Props::Div,
+        vec![
+            ctx.create_element(
+                Props::Button(ButtonProps {
+                    title: "Hello".to_string(),
+                }),
+                vec![],
+            ),
+            ctx.create_element(
+                Props::Button(ButtonProps {
+                    title: "World".to_string(),
+                }),
+                vec![],
+            ),
+        ],
+    )
+}
+
+//app
+#[derive(Debug, Serialize)]
+struct AppProps;
+fn App(ctx: &Context, props: AppProps) -> Element {
+    ctx.create_element(
+        Props::Empty,
+        vec![
+            ctx.create_element(
+                Props::Panel(PanelProps {
+                    tabs: vec!["Hello".to_string(), "World".to_string()],
+                }),
+                vec![],
+            ),
+            ctx.create_element(
+                Props::Panel(PanelProps {
+                    tabs: vec!["Heehe".to_string(), "Haha".to_string()],
+                }),
+                vec![],
+            ),
+        ],
+    )
+}
+
+fn main() {
+    let ctx = Context {};
+    let props = AppProps {};
+    let app = App(&ctx, props);
+
+    // Convert the app to JSON and print it
+    let json = serde_json::to_string_pretty(&app).unwrap();
+    println!("{}", json);
 }
