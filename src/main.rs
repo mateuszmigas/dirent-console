@@ -91,19 +91,28 @@ fn App(props: AppProps) -> Vec<Element> {
     ]
 }
 
+fn create_elements(props: Props) -> Vec<Element> {
+    match props {
+        Props::App(props) => App(props),
+        Props::Button(props) => Button(props),
+        Props::Panel(props) => Panel(props),
+        Props::Text(props) => Text(props),
+        Props::Last => vec![],
+    }
+}
+
+fn render_root(props: Props) -> Vec<Element> {
+    let root = create_element("root", props);
+    render(&root.key, root.clone())
+}
+
 fn render(key: &str, element: Element) -> Vec<Element> {
     let element_with_path = Element {
         key: key.to_string(),
         props: element.props.clone(),
     };
 
-    let children = match element.props {
-        Props::App(props) => App(props),
-        Props::Button(props) => Button(props),
-        Props::Panel(props) => Panel(props),
-        Props::Text(props) => Text(props),
-        Props::Last => vec![],
-    };
+    let children = create_elements(element.props);
 
     let mut result = vec![element_with_path];
     for child in children {
@@ -116,8 +125,7 @@ fn render(key: &str, element: Element) -> Vec<Element> {
 //foo => [a,b]
 
 fn main() {
-    let app = create_element("root", Props::App(AppProps {}));
-    let rendered_app = render("__root__", app);
+    let rendered_app = render_root(Props::App(AppProps {}));
     let json = serde_json::to_string_pretty(&rendered_app).unwrap();
     println!("{}", json);
 }
