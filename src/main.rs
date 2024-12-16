@@ -1,145 +1,134 @@
 use serde::Serialize;
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Clone)]
 enum Props {
     App(AppProps),
     Button(ButtonProps),
     Box(PanelProps),
     Panel(PanelProps),
-    Div,
-    Empty,
+    Last,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Clone)]
 struct Element {
     key: String,
     props: Props,
-    children: Vec<Element>,
 }
 
 impl Element {
     fn text(text: &str) -> Self {
         Element {
             key: "__text__".to_string(),
-            props: Props::Empty,
-            children: vec![],
-        }
-    }
-
-    fn new(children: Vec<Element>) -> Self {
-        Element {
-            key: "__container__".to_string(),
-            props: Props::Empty,
-            children: children,
+            props: Props::Last,
         }
     }
 }
 
 //context
-#[derive(Clone, Copy)]
-struct Context {}
+#[derive(Clone, Debug)]
+struct Context {
+    path: Vec<String>,
+}
+
 impl Context {
-    fn create_element(&self, key: &str, props: Props, children: Vec<Element>) -> Element {
-        Element {
-            key: key.to_string(),
-            props,
-            children,
+    fn new() -> Self {
+        Context { path: Vec::new() }
+    }
+
+    fn push(&self, segment: &str) -> Self {
+        let mut new_path = self.path.clone();
+        new_path.push(segment.to_string());
+        Context { path: new_path }
+    }
+
+    fn get_path(&self) -> String {
+        if self.path.is_empty() {
+            return "__root__".to_string();
         }
+        self.path.join(".")
+    }
+}
+
+fn create_element(ctx: Context, props: Props) -> Element {
+    Element {
+        key: ctx.get_path(),
+        props,
     }
 }
 
 //button
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Clone)]
 struct ButtonProps {
     title: String,
 }
-fn Button(ctx: &Context, props: ButtonProps) -> Element {
-    Element::text(&props.title)
+fn Button(ctx: Context, props: ButtonProps) -> Vec<Element> {
+    vec![Element::text(&props.title)]
 }
 
-//box
-#[derive(Debug, Serialize)]
+//panel
+#[derive(Debug, Serialize, Clone)]
 struct PanelProps {
     tabs: Vec<String>,
 }
-fn Panel(ctx: &Context, props: PanelProps) -> Element {
-    ctx.create_element(
-        "panel",
-        Props::Div,
-        vec![
-            ctx.create_element(
-                "button1",
-                Props::Button(ButtonProps {
-                    title: "Hello".to_string(),
-                }),
-                vec![],
-            ),
-            ctx.create_element(
-                "button2",
-                Props::Button(ButtonProps {
-                    title: "World".to_string(),
-                }),
-                vec![],
-            ),
-        ],
-    )
+fn Panel(ctx: Context, props: PanelProps) -> Vec<Element> {
+    vec![
+        create_element(
+            ctx.push("button1"),
+            Props::Button(ButtonProps {
+                title: "Hello".to_string(),
+            }),
+        ),
+        create_element(
+            ctx.push("button2"),
+            Props::Button(ButtonProps {
+                title: "World".to_string(),
+            }),
+        ),
+    ]
 }
 
 //app
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Clone)]
 struct AppProps;
-fn App(ctx: &Context, props: AppProps) -> Element {
-    ctx.create_element(
-        "app2",
-        Props::Empty,
-        vec![
-            ctx.create_element(
-                "panel1",
-                Props::Panel(PanelProps {
-                    tabs: vec!["Hello".to_string(), "World".to_string()],
-                }),
-                vec![],
-            ),
-            ctx.create_element(
-                "panel2",
-                Props::Panel(PanelProps {
-                    tabs: vec!["Heehe".to_string(), "Haha".to_string()],
-                }),
-                vec![],
-            ),
-        ],
-    )
+fn App(ctx: Context, props: AppProps) -> Vec<Element> {
+    vec![
+        create_element(
+            ctx.push("panel1"),
+            Props::Panel(PanelProps {
+                tabs: vec!["Hello".to_string(), "World".to_string()],
+            }),
+        ),
+        create_element(
+            ctx.push("panel2"),
+            Props::Panel(PanelProps {
+                tabs: vec!["Heehe".to_string(), "Haha".to_string()],
+            }),
+        ),
+    ]
 }
 
-fn render(ctx: &Context, element: Element) -> Element {
-    // Match on the props to determine which component to call
-    let rendered_element = match element.props {
-        Props::App(props) => App(ctx, props),
-        Props::Button(props) => Button(ctx, props),
-        Props::Panel(props) => Panel(ctx, props),
-        Props::Box(props) => Panel(ctx, props), // Box uses Panel implementation
-        Props::Div | Props::Empty => Element::new(element.children),
+fn render(ctx: Context, element: Element) -> Vec<Element> {
+    let current_ctx = ctx.push(&element.key);
+
+    let children = match &element.props {
+        Props::App(props) => App(current_ctx.clone(), props.clone()),
+        Props::Button(props) => Button(current_ctx.clone(), props.clone()),
+        Props::Panel(props) => Panel(current_ctx.clone(), props.clone()),
+        Props::Box(props) => Panel(current_ctx.clone(), props.clone()),
+        Props::Last => vec![],
     };
 
-    // Recursively render all children
-    Element {
-        key: element.key,
-        props: rendered_element.props,
-        children: rendered_element
-            .children
-            .into_iter()
-            .map(|child| render(ctx, child))
-            .collect(),
+    let mut result = vec![element];
+    for child in children {
+        result.extend(render(current_ctx.clone(), child));
     }
+    result
 }
 
 fn main() {
-    let ctx = Context {};
-    // Create the initial app element
-    let app = ctx.create_element("app", Props::App(AppProps {}), vec![]);
-
-    // Render the entire tree
-    let rendered_app = render(&ctx, app);
+    let ctx = Context::new();
+    let app = create_element(ctx.push("app"), Props::App(AppProps {}));
+    let rendered_app = render(ctx, app);
 
     // Convert the rendered app to JSON and print it
     let json = serde_json::to_string_pretty(&rendered_app).unwrap();
