@@ -9,7 +9,7 @@ fn App() -> impl IntoView {
             on:click=move |_| set_count.set(count.get() + 1)
         >
             "Click me: "
-            {count}
+            {count} "_" {count.get()}
         </button>
         <p>
             "Double count: "
