@@ -1,0 +1,8 @@
+[package]
+name = "test-dioxus"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+dioxus = "0.6.1"
+dioxus-tui = "0.4.3"
