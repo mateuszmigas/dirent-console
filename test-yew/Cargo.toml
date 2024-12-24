@@ -1,5 +1,5 @@
 [package]
-name = "test-diosus"
+name = "test-yew"
 version = "0.1.0"
 edition = "2021"
 
